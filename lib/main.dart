@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 void main() {
   runApp(const MeuApp());
@@ -9,10 +10,10 @@ class MeuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Pedra, Papel, Tesoura',
       debugShowCheckedModeBanner: false,
-      home: TelaJogo(),
+      home: const TelaJogo(),
     );
   }
 }
@@ -25,6 +26,43 @@ class TelaJogo extends StatefulWidget {
 }
 
 class _TelaJogoState extends State<TelaJogo> {
+  var imagemApp = const AssetImage("assets/images/circulo.png");
+
+  void _jogar(String escolhaDoUsuario) {
+    var opcoes = ["pedra", "papel", "tesoura"];
+    var numeroSorteado = Random().nextInt(3);
+    var escolhaDoApp = opcoes[numeroSorteado];
+
+    setState(() {
+      imagemApp = AssetImage("assets/images/$escolhaDoApp.png");
+    });
+
+    String resultadoDaPartida;
+
+    if (escolhaDoUsuario == escolhaDoApp) {
+      resultadoDaPartida = "Empate!";
+    } else if ((escolhaDoUsuario == "pedra" && escolhaDoApp == "tesoura") ||
+        (escolhaDoUsuario == "tesoura" && escolhaDoApp == "papel") ||
+        (escolhaDoUsuario == "papel" && escolhaDoApp == "pedra")) {
+      resultadoDaPartida = "Você Ganhou!";
+    } else {
+      resultadoDaPartida = "Você Perdeu!";
+    }
+
+    Future.delayed(const Duration(seconds: 1), () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TelaResultado(
+            resultado: resultadoDaPartida,
+            imagemDoApp: escolhaDoApp,
+            imagemDoUsuario: escolhaDoUsuario,
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +79,7 @@ class _TelaJogoState extends State<TelaJogo> {
               "Escolha do App:",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            Image.asset("assets/images/circulo.png", height: 120),
+            Image(image: imagemApp, height: 120),
             const Text(
               "Sua Escolha:",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -50,15 +88,15 @@ class _TelaJogoState extends State<TelaJogo> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => _jogar("pedra"),
                   child: Image.asset("assets/images/pedra.png", height: 100),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => _jogar("papel"),
                   child: Image.asset("assets/images/papel.png", height: 100),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => _jogar("tesoura"),
                   child: Image.asset("assets/images/tesoura.png", height: 100),
                 ),
               ],
@@ -73,19 +111,26 @@ class _TelaJogoState extends State<TelaJogo> {
 class TelaResultado extends StatelessWidget {
   final String resultado;
   final String imagemDoApp;
-  final String imagemDoUsuario;
-  final String iconeResultado;
+  final String imagemDoUsuario; // Recebendo a sua escolha
 
   const TelaResultado({
     super.key,
     required this.resultado,
     required this.imagemDoApp,
     required this.imagemDoUsuario,
-    required this.iconeResultado,
   });
 
   @override
   Widget build(BuildContext context) {
+    String iconeResultado = "assets/images/circulo.png";
+    if (resultado == "Você Ganhou!") {
+      iconeResultado = "assets/images/ganhar.png";
+    } else if (resultado == "Empate!") {
+      iconeResultado = "assets/images/apertodemaos.png";
+    } else if (resultado == "Você Perdeu!") {
+      iconeResultado = "assets/images/perder.png";
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Resultado"),
@@ -96,28 +141,39 @@ class TelaResultado extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+
             Image.asset("assets/images/$imagemDoApp.png", height: 80),
             const Text(
               "Escolha do App",
               style: TextStyle(fontSize: 18),
             ),
+
+
             Image.asset("assets/images/$imagemDoUsuario.png", height: 80),
             const Text(
               "Sua Escolha",
               style: TextStyle(fontSize: 18),
             ),
+
+
             Image.asset(
               iconeResultado,
               height: 150,
               width: 150,
               fit: BoxFit.contain,
             ),
+
+
             Text(
               resultado,
               style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
+
+
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pop(context);
+              },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
               ),
